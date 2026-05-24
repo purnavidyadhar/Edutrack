@@ -34,6 +34,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
         Route::get('/teachers', [TeacherManagementController::class, 'index'])->name('teachers.index');
         Route::get('/classes', [ClassManagementController::class, 'index'])->name('classes.index');
+        Route::get('/admin/tools', [AdminController::class, 'showTools'])->name('admin.tools');
+        Route::post('/admin/tools/update-marks', [AdminController::class, 'updateMarks'])->name('admin.tools.updateMarks');
+        Route::post('/admin/tools/update-attendance', [AdminController::class, 'updateAttendance'])->name('admin.tools.updateAttendance');
+        Route::post('/admin/tools/announcement', [AdminController::class, 'storeAnnouncement'])->name('admin.tools.storeAnnouncement');
+        Route::post('/admin/tools/feedback/{feedback}/update', [AdminController::class, 'updateFeedback'])->name('admin.tools.updateFeedback');
+        Route::delete('/admin/tools/feedback/{feedback}', [AdminController::class, 'deleteFeedback'])->name('admin.tools.deleteFeedback');
     });
 
     Route::middleware('role:admin,teacher')->group(function () {

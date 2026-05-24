@@ -85,33 +85,9 @@ class StudentController extends Controller
 
     public function evaluate(Student $student)
     {
-        $student->load(['marks', 'attendances']);
+        $student->recalculateRiskScore();
 
-        $examScore = $student->marks()->avg('marks_obtained') ?? 0;
-        $quizScore = $student->marks()->where('exam_type', 'quiz')->avg('marks_obtained') ?? $examScore;
-        $assignmentCompletion = \App\Models\Assignment::where('student_id', $student->id)->avg('score') ?? $examScore;
-        $attendance = $student->attendances()->avg('percentage') ?? 0;
-
-        $progressSignal = \App\Models\ProgressRecord::where('student_id', $student->id)->avg('improvement_percentage') ?? 0;
-        $participation = min(100, max(0, 55 + $progressSignal));
-
-        $riskScore = ($examScore * 0.40) + ($quizScore * 0.15) + ($assignmentCompletion * 0.15) + ($attendance * 0.20) + ($participation * 0.10);
-
-        $riskLevel = 'Good Performer';
-        if ($riskScore < 40) {
-            $riskLevel = 'Critical Support Needed';
-        } elseif ($riskScore < 60) {
-            $riskLevel = 'Slow Learner';
-        } elseif ($riskScore < 75) {
-            $riskLevel = 'Needs Attention';
-        }
-
-        $student->update([
-            'risk_score' => round($riskScore, 2),
-            'risk_level' => $riskLevel
-        ]);
-
-        return redirect()->back()->with('success', 'Evaluation updated from real marks, attendance and progress records. Score: ' . round($riskScore, 1) . ' (' . $riskLevel . ')');
+        return redirect()->back()->with('success', 'Evaluation updated from real marks, attendance and progress records. Score: ' . round($student->risk_score, 1) . ' (' . $student->risk_level . ')');
     }
 
     public function edit(Student $student)

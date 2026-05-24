@@ -9,6 +9,7 @@ use App\Models\RemedialPlan;
 use App\Models\Student;
 use App\Models\Teacher;
 use App\Models\TeacherFeedback;
+use App\Models\Announcement;
 use App\Models\HelpRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -82,10 +83,16 @@ class TeacherController extends Controller
             ->latest()
             ->get();
 
+        // Load active announcements
+        $announcements = Announcement::whereIn('audience', ['all', 'teachers'])
+            ->latest()
+            ->take(5)
+            ->get();
+
         return view('teacher.dashboard', compact(
             'totalStudents', 'slowLearnersCount', 'needsAttentionCount', 'criticalCount', 'plansAssigned',
             'avgImprovement', 'classAverage', 'avgAttendance', 'priorityStudents', 'subjectWeaknesses',
-            'teachingQueue', 'recentActivities', 'riskLabels', 'riskData', 'recentFeedbacks', 'helpRequests'
+            'teachingQueue', 'recentActivities', 'riskLabels', 'riskData', 'recentFeedbacks', 'helpRequests', 'announcements'
         ));
     }
 

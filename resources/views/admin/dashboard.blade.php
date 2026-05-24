@@ -18,6 +18,9 @@
     <a href="{{ route('reports') }}" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium mb-1">
         <i data-lucide="bar-chart-3" class="w-4 h-4"></i> Analytics Reports
     </a>
+    <a href="{{ route('admin.tools') }}" class="sidebar-link flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium mb-1">
+        <i data-lucide="sliders" class="w-4 h-4"></i> Admin Tools
+    </a>
 @endsection
 
 @section('content')
@@ -40,6 +43,10 @@
                     Managing institutional performance metrics, faculty workload, and automated student risk triggers.
                 </p>
             </div>
+            
+            <a href="{{ route('admin.tools') }}" class="px-6 py-3.5 bg-white text-brand-950 text-sm font-black rounded-2xl hover:bg-slate-50 hover:shadow-lg transition-all flex items-center gap-2 btn-animated border border-white/20 self-start md:self-auto">
+                <i data-lucide="sliders" class="w-5 h-5 text-brand-500"></i> Open Admin Tools
+            </a>
         </div>
     </div>
 

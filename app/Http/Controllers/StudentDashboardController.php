@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\EduClass;
 use App\Models\RemedialPlan;
 use App\Models\Student;
+use App\Models\Announcement;
 use Illuminate\Http\Request;
 
 class StudentDashboardController extends Controller
@@ -51,9 +52,15 @@ class StudentDashboardController extends Controller
         // Load recent feedbacks from teachers
         $feedbacks = $student->feedbacks()->latest()->get();
 
+        // Load active announcements
+        $announcements = Announcement::whereIn('audience', ['all', 'students'])
+            ->latest()
+            ->take(5)
+            ->get();
+
         return view('student.dashboard', compact(
             'student', 'avgScore', 'attendance', 'activePlan', 'completedPlans', 'performanceHistory',
-            'weakSubjects', 'missionList', 'progressPercent', 'badge', 'feedbacks'
+            'weakSubjects', 'missionList', 'progressPercent', 'badge', 'feedbacks', 'announcements'
         ));
     }
 

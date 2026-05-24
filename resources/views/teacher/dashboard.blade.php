@@ -38,6 +38,25 @@
         </div>
     </section>
 
+    @if(($announcements ?? collect())->isNotEmpty())
+    <section class="space-y-3 animate-fadeInUp">
+        @foreach($announcements as $announcement)
+        <div class="glass-panel p-5 bg-gradient-to-r from-blue-50/60 to-purple-50/60 border border-blue-100/50 flex gap-4 items-start shadow-sm hover:translate-y-0 hover:shadow-md">
+            <div class="w-10 h-10 rounded-2xl bg-white text-blue-600 border border-blue-100 grid place-items-center shrink-0 animate-bounce-custom">
+                <i data-lucide="megaphone" class="w-5 h-5"></i>
+            </div>
+            <div class="flex-1">
+                <div class="flex justify-between items-center gap-3">
+                    <strong class="text-slate-800 text-sm">📢 Administrator Announcement: {{ $announcement->title }}</strong>
+                    <span class="text-[10px] text-slate-400 font-black tracking-widest">{{ $announcement->created_at->diffForHumans() }}</span>
+                </div>
+                <p class="text-xs text-slate-600 mt-1 leading-relaxed font-semibold">{{ $announcement->message }}</p>
+            </div>
+        </div>
+        @endforeach
+    </section>
+    @endif
+
     <section class="grid sm:grid-cols-2 xl:grid-cols-5 gap-5 dashboard-grid">
         @php
             $stats = [
