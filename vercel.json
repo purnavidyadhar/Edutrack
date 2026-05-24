@@ -7,9 +7,9 @@
     }
   },
   "routes": [
-    { "src": "/build/(.*)", "dest": "/public/build/$1" },
-    { "src": "^/(favicon\\.ico|robots\\.txt|css/.*|js/.*|images/.*)$", "dest": "/public/$1" },
-    { "src": "^/(.*\\.(js|css|png|jpg|jpeg|svg|ico|json|webmanifest|map|woff2?))$", "dest": "/public/$1" },
+    { "src": "/build/(.*)", "dest": "/build/$1" },
+    { "src": "^/(favicon\\.ico|robots\\.txt|css/.*|js/.*|images/.*)$", "dest": "/$1" },
+    { "src": "^/(.*\\.(js|css|png|jpg|jpeg|svg|ico|json|webmanifest|map|woff2?))$", "dest": "/$1" },
     { "src": "/(.*)", "dest": "/api/index.php" }
   ]
 }
