@@ -10,7 +10,8 @@ putenv('DB_CONNECTION=sqlite');
 $tmpDatabase = '/tmp/database.sqlite';
 $sourceDatabase = realpath(__DIR__ . '/../database/database.sqlite');
 
-if ($sourceDatabase && !file_exists($tmpDatabase)) {
+// Copy database to /tmp if it doesn't exist, or if the current one is empty/invalid (under 100KB)
+if ($sourceDatabase && (!file_exists($tmpDatabase) || filesize($tmpDatabase) < 100000)) {
     copy($sourceDatabase, $tmpDatabase);
     chmod($tmpDatabase, 0666);
 }
