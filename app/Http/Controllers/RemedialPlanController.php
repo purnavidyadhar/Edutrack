@@ -31,28 +31,135 @@ class RemedialPlanController extends Controller
             'duration' => 'required|string',
         ]);
 
-        // Simulated AI Logic for structured plan generation
-        $issue = strtolower($request->learning_issue);
-        $style = strtolower($request->preferred_style);
+        $student = Student::findOrFail($request->student_id);
+        $subjectName = $request->subject;
+        $issue = $request->learning_issue;
+        $style = $request->preferred_style;
+        $duration = $request->duration;
+
+        // Calculate student's marks percentage for this subject
+        $subjectModel = Subject::where('name', $subjectName)->first();
+        $marksPercentage = null;
+        if ($subjectModel) {
+            $totalObtained = \App\Models\Mark::where('student_id', $student->id)->where('subject_id', $subjectModel->id)->sum('marks_obtained');
+            $totalPossible = \App\Models\Mark::where('student_id', $student->id)->where('subject_id', $subjectModel->id)->sum('total_marks');
+            if ($totalPossible > 0) {
+                $marksPercentage = ($totalObtained / $totalPossible) * 100;
+            }
+        }
         
-        $planContent = "### Learning Objective\nImprove fundamental understanding of " . $request->subject . " with a focus on resolving: " . $request->learning_issue . ".\n\n";
-        
-        $planContent .= "### Recommended Teaching Method\n";
-        if (str_contains($style, 'visual')) {
-            $planContent .= "Visual Learning: Use concept mapping, mind maps, and interactive video lessons. Visual aids will bridge the gap in comprehension.\n\n";
-        } elseif (str_contains($style, 'peer')) {
-            $planContent .= "Peer-to-Peer Mentoring: Pair the student with a high-performing classmate. Collaborative learning builds confidence.\n\n";
-        } elseif (str_contains($style, 'activity')) {
-            $planContent .= "Activity-Based Learning: Implement hands-on practice, physical models, or gamified quizzes to enforce active recall.\n\n";
+        // Fallback to student's overall risk_score (which functions as their performance score index)
+        if ($marksPercentage === null) {
+            $marksPercentage = $student->risk_score;
+        }
+        $marksPercentage = round($marksPercentage, 1);
+
+        // Determine student performance tier & pacing
+        if ($marksPercentage < 45) {
+            $perfLevel = 'Critical Intervention Required';
+            $pacing = 'Repetitive, high-support, low-stakes pacing focused on basic foundations.';
+        } elseif ($marksPercentage < 70) {
+            $perfLevel = 'Targeted Skill Development';
+            $pacing = 'Moderate pacing focused on bridging knowledge gaps and mid-level exercise drill sheets.';
         } else {
-            $planContent .= "Micro-Learning: Break down complex topics into bite-sized 5-minute focused sessions followed by immediate practice.\n\n";
+            $perfLevel = 'Academic Enrichment & Optimization';
+            $pacing = 'Fast pacing focused on advanced application, past exam papers, and time-management strategies.';
         }
 
-        $planContent .= "### Weekly Action Plan ({$request->duration})\n";
-        $planContent .= "- **Week 1:** Foundational review using targeted worksheets.\n";
-        $planContent .= "- **Week 2:** Introduction of core concepts using the recommended method.\n";
-        $planContent .= "- **Week 3:** Practical application and interactive assessment.\n";
-        $planContent .= "- **Week 4:** Final evaluation and confidence-building exercises.\n";
+        // Generate customized plan content markdown
+        $planContent = "## 📊 Individualized Remedial Plan: " . $student->user->name . "\n";
+        $planContent .= "- **Subject:** " . $subjectName . "\n";
+        $planContent .= "- **Academic Status:** " . $perfLevel . " (Current Subject Score: **" . $marksPercentage . "%**)\n";
+        $planContent .= "- **Primary Target Gap:** " . $issue . "\n\n";
+
+        $planContent .= "### 🎯 Learning Objective\n";
+        if ($marksPercentage < 45) {
+            $planContent .= "Re-establish basic concepts in " . $subjectName . " related to \"" . $issue . "\". Focus on fundamental rules and vocabulary before moving to standard curriculum application.\n\n";
+        } elseif ($marksPercentage < 70) {
+            $planContent .= "Bridge conceptual gaps in " . $subjectName . " regarding \"" . $issue . "\". Target core problem-solving models and standard worksheets to match class averages.\n\n";
+        } else {
+            $planContent .= "Optimize advanced performance in " . $subjectName . " for \"" . $issue . "\". Deep dive into high-difficulty topics, error analysis, and speed drilling.\n\n";
+        }
+
+        $planContent .= "### 🧠 Recommended Teaching Method: " . $style . "\n";
+        $styleLower = strtolower($style);
+        if (str_contains($styleLower, 'visual')) {
+            $planContent .= "Use visual aids such as color-coded diagrams, mind maps, and interactive graphing utilities. For " . $subjectName . ", visually chart out \"" . $issue . "\" to make connections tangible.\n\n";
+        } elseif (str_contains($styleLower, 'peer')) {
+            $planContent .= "Pair the student with an academic buddy who has mastered " . $subjectName . ". Conduct joint study sprints where they explain concepts back and forth, focusing on: \"" . $issue . "\".\n\n";
+        } elseif (str_contains($styleLower, 'activity') || str_contains($styleLower, 'hands-on')) {
+            $planContent .= "Implement active retrieval and kinesthetic exercises (e.g. physical flashcards, flash-drills, virtual science labs, or gamified math quizzes). Focus directly on hands-on practice of \"" . $issue . "\".\n\n";
+        } else {
+            $planContent .= "Micro-Learning: Conduct short, focused 10-minute explanation blocks on \"" . $issue . "\", followed immediately by a single diagnostic question. Restrict practice load to maintain focus.\n\n";
+        }
+
+        $planContent .= "### ⏱️ Pacing Strategy & Rigor\n";
+        $planContent .= "- **Pacing approach:** " . $pacing . "\n\n";
+
+        $planContent .= "### 📅 Weekly Action Schedule (" . $duration . " Duration)\n";
+        $durationLower = strtolower($duration);
+
+        if (str_contains($durationLower, '2 week')) {
+            $planContent .= "#### Week 1: Diagnostic & Foundation Building\n";
+            $planContent .= "- **Goal:** Clarify baseline terminology and core definitions for \"" . $issue . "\" in " . $subjectName . ".\n";
+            if ($marksPercentage < 45) {
+                $planContent .= "- **Tasks:** Review fundamental formulas and simple examples. Complete 3 scaffolded homework exercises under direct teacher supervision using " . $style . ".\n";
+            } else {
+                $planContent .= "- **Tasks:** Resolve standard problem sets and map out dependencies using " . $style . ".\n";
+            }
+            $planContent .= "\n#### Week 2: Targeted Exercises & Assessment\n";
+            $planContent .= "- **Goal:** Verify student comprehension under evaluation conditions.\n";
+            if ($marksPercentage < 45) {
+                $planContent .= "- **Tasks:** Complete a low-stakes 5-question quiz. Provide immediate corrective feedback.\n";
+            } elseif ($marksPercentage < 70) {
+                $planContent .= "- **Tasks:** Solve standard exam-style questions on \"" . $issue . "\" and log confidence scores.\n";
+            } else {
+                $planContent .= "- **Tasks:** Complete high-difficulty exercises under timed conditions (15 minutes limit).\n";
+            }
+        } elseif (str_contains($durationLower, '8 week')) {
+            $planContent .= "#### Weeks 1-2: Prerequisite Diagnostic & Core Vocabulary\n";
+            $planContent .= "- Focus on mapping definitions, simple arithmetic/reading, and resolving basic misconceptions about \"" . $issue . "\". Use " . $style . " format.\n\n";
+            $planContent .= "#### Weeks 3-4: Controlled Skill Application\n";
+            $planContent .= "- Introduce standard problems. Complete daily 10-minute practice worksheets targeting \"" . $issue . "\".\n\n";
+            $planContent .= "#### Weeks 5-6: Independent Problem Solving\n";
+            $planContent .= "- Transition student away from scaffolds. Student resolves intermediate worksheets in " . $subjectName . " independently.\n\n";
+            $planContent .= "#### Weeks 7-8: Mock Assessments & Verification\n";
+            $planContent .= "- Conduct timed assessment runs. Teacher reviews feedback ratings and completes evaluation loop.\n";
+        } elseif (str_contains($durationLower, 'semester')) {
+            $planContent .= "#### Month 1: Baseline Gap Analysis & Diagnostics\n";
+            $planContent .= "- Conduct comprehensive reviews on " . $subjectName . " foundational chapters. Establish visual formula/concept index boards.\n\n";
+            $planContent .= "#### Month 2: Guided Curriculum Alignment\n";
+            $planContent .= "- Address \"" . $issue . "\" in alignment with class lectures. Deliver specialized " . $style . " worksheets weekly.\n\n";
+            $planContent .= "#### Month 3: Speed & Rigor Sprints\n";
+            $planContent .= "- Transition to mock exams and error journals. Review common pitfalls and self-correction techniques.\n\n";
+            $planContent .= "#### Month 4: Final Mastery Review\n";
+            $planContent .= "- Complete cumulative examinations and review progress records. Goal: Raise subject score past next milestone.\n";
+        } else {
+            // Default to 4 Weeks
+            $planContent .= "#### Week 1: Foundational Review\n";
+            $planContent .= "- **Goal:** Set up basic definitions and rules for \"" . $issue . "\" using " . $style . ".\n";
+            $planContent .= "- **Activity:** Diagnostic check and 1-on-1 vocabulary/formula walkthrough.\n";
+            
+            $planContent .= "\n#### Week 2: Guided Practice\n";
+            $planContent .= "- **Goal:** Bridge the primary learning issue through progressive difficulty exercises.\n";
+            if ($marksPercentage < 45) {
+                $planContent .= "- **Activity:** Solve 5 simplified worksheets together with the tutor. Focus on repeating rules.\n";
+            } else {
+                $planContent .= "- **Activity:** Complete standard exercise chapters with partial hints.\n";
+            }
+
+            $planContent .= "\n#### Week 3: Independent Practice\n";
+            $planContent .= "- **Goal:** Build confidence and remove instructional scaffolds.\n";
+            if ($marksPercentage < 45) {
+                $planContent .= "- **Activity:** Solve standard worksheets independently. Flag difficult areas for Week 4 review.\n";
+            } else {
+                $planContent .= "- **Activity:** Complete timed quizzes and review error logs with the teacher.\n";
+            }
+
+            $planContent .= "\n#### Week 4: Final Evaluation\n";
+            $planContent .= "- **Goal:** Validate comprehension and evaluate improvement percentage.\n";
+            $planContent .= "- **Activity:** Administer final milestone evaluation. Recalculate student risk rating.\n";
+        }
 
         $user = auth()->user();
         $teacher = $user->teacher ?: \App\Models\Teacher::firstOrCreate(['user_id' => $user->id]);

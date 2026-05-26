@@ -127,4 +127,42 @@ class HelpRequestTest extends TestCase
             'status' => 'resolved',
         ]);
     }
+
+    public function test_teacher_can_generate_remedial_plan(): void
+    {
+        $studentUser = User::factory()->create(['role' => 'student']);
+        $student = Student::create([
+            'user_id' => $studentUser->id,
+            'edu_class_id' => $this->eduClass->id,
+            'roll_number' => 'S101',
+            'risk_score' => 50,
+            'risk_level' => 'Slow Learner',
+        ]);
+
+        $teacherUser = User::factory()->create(['role' => 'teacher']);
+        $teacher = Teacher::create(['user_id' => $teacherUser->id]);
+
+        $response = $this
+            ->actingAs($teacherUser)
+            ->post('/plans', [
+                'student_id' => $student->id,
+                'subject' => 'Mathematics',
+                'learning_issue' => 'Algebra issues',
+                'preferred_style' => 'Visual Learning',
+                'duration' => '4 Weeks',
+            ]);
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect();
+
+        $this->assertDatabaseHas('remedial_plans', [
+            'student_id' => $student->id,
+            'teacher_id' => $teacher->id,
+            'subject' => 'Mathematics',
+            'learning_issue' => 'Algebra issues',
+            'preferred_style' => 'Visual Learning',
+            'duration' => '4 Weeks',
+            'status' => 'Active',
+        ]);
+    }
 }
