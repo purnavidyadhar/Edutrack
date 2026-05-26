@@ -41,7 +41,6 @@
                 <select id="role" name="role" required onchange="toggleStudentFields(this.value)" class="w-full px-5 py-4 bg-white border border-gray-100 rounded-2xl focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all shadow-sm">
                     <option value="teacher">Teacher</option>
                     <option value="student">Student</option>
-                    <option value="admin">Administrator</option>
                 </select>
             </div>
             <div class="md:col-span-2 space-y-2">
