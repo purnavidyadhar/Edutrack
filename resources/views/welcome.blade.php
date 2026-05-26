@@ -34,7 +34,7 @@
                     <a href="{{ route('dashboard') }}" class="px-8 py-4 bg-brand-950 text-white font-bold rounded-2xl hover:bg-brand-900 transition-all shadow-2xl shadow-brand-950/20 flex items-center gap-2 group">
                         Explore Dashboard <i data-lucide="arrow-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform"></i>
                     </a>
-                    <a href="#" class="px-8 py-4 bg-white border border-gray-200 text-brand-950 font-bold rounded-2xl hover:border-brand-500 transition-all flex items-center gap-2">
+                    <a href="{{ route('login') }}" class="px-8 py-4 bg-white border border-gray-200 text-brand-950 font-bold rounded-2xl hover:border-brand-500 transition-all flex items-center gap-2">
                         <i data-lucide="play-circle" class="w-5 h-5 text-brand-500"></i> Watch Demo
                     </a>
                 </div>
